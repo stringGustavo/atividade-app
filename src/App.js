@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -6,42 +6,21 @@ import './App.css';
 import TaskForm from './components/TaskForm';
 import TaskList from './components/TaskList';
 
-let initialState = [
-  {
-    id: 1,
-    title: "Título 1",
-    priority: "1",
-    description: "Primeira Atividade"
-  },
-  {
-    id: 2,
-    title: "Título 2",
-    priority: "2",
-    description: "Segunda Atividade"
-  },
-  {
-    id: 3,
-    title: "Título 3",
-    priority: "3",
-    description: "Terceira Atividade"
-  }
-]
-
 function App() {
-  const [tasks, setTasks] = useState(initialState);
-  const [task, setTask] = useState({});
+  const [index, setIndex] = useState(0);
+  const [tasks, setTasks] = useState([]);
+  const [task, setTask] = useState({id: 0});
+  
+  useEffect( () => {
+    (tasks.length <= 0) ? setIndex(1) : setIndex(refreshIndex());
+  }, [tasks]);
 
-  function addTask(event) {
-    event.preventDefault();
-
-    const task = {
-      id: refreshIndex(),
-      title: document.getElementById('title').value,
-      priority: document.getElementById('priority').value,
-      description: document.getElementById('description').value
-    }
-
-    setTasks([...tasks, { ...task }]);
+  function addTask (task) {
+    setTasks([...tasks, {...task, id: index}])
+  }
+  
+  function cancelEdit () {
+    setTask({id: 0});
   }
 
   function deleteTask (id) {
@@ -54,6 +33,12 @@ function App() {
     setTask(task[0]);
   }
 
+
+  function updateTask (task) {
+    setTasks(tasks.map(item => (item.id === task.id) ? task : item));
+    setTask({id: 0});
+  }
+
   function refreshIndex () {
     return Math.max.apply(Math, tasks.map(item => item.id)) + 1;
   }
@@ -63,7 +48,9 @@ function App() {
       <TaskForm
         refreshIndex={refreshIndex}
         selectedTask={task}
+        cancelEdit={cancelEdit}
         addTask={addTask}
+        updateTask={updateTask}
         tasks={tasks}
       />
       <TaskList
